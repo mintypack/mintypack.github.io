@@ -5,6 +5,17 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>A Pack of Mint 🥬?</title>
+
+    <!-- Apply persisted theme to avoid a flash of the wrong theme -->
+    <script>
+      (function () {
+        try {
+          let t = localStorage.getItem('webpage-theme');
+          if (!t) t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          document.documentElement.classList.toggle('dark', t === 'dark');
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <noscript>Don't have JS in 2026 hmmm?</noscript>

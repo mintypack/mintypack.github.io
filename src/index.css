@@ -59,6 +59,19 @@
     --shadow-2xl: var(--shadow-2xl);
 }
 
+@theme {
+    --animate-pulse-dot: pulse-dot 2.4s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
+
+    @keyframes pulse-dot {
+        0%, 100% {
+            box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 15%, transparent);
+        }
+        50% {
+            box-shadow: 0 0 0 6px transparent;
+        }
+    }
+}
+
 :root {
     --background: oklch(0.9848 0.0054 95.0983);
     --foreground: oklch(0.1905 0.0099 97.8757);
