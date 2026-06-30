@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 
+import Container from "@/components/Container"
 import ThemeToggle from "@/components/ThemeToggle"
 import { cn } from "@/lib/utils"
 
@@ -25,7 +26,7 @@ export default function Header() {
         scrolled ? "border-border" : "border-transparent"
       )}
     >
-      <div className="mx-auto flex max-w-280 items-center justify-between gap-6 px-8">
+      <Container className="flex items-center justify-between gap-6">
         <a
           href="/"
           className="inline-flex items-center gap-2 text-base font-semibold tracking-tight"
@@ -52,7 +53,7 @@ export default function Header() {
           </a>
           <ThemeToggle />
         </nav>
-      </div>
+      </Container>
     </header>
   )
 }
