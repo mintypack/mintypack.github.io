@@ -1,5 +1,7 @@
 import Header from "@/components/Header"
 import Hero from "@/components/Hero"
+import { Separator } from "@/components/ui/separator"
+import Currently from "@/components/Currently"
 
 function App() {
   return (
@@ -7,6 +9,9 @@ function App() {
       <Header />
       <main>
         <Hero />
+        <Separator />
+        <Currently />
+        <Separator />
       </main>
     </>
   )
