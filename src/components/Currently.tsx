@@ -1,4 +1,5 @@
 import Container from "@/components/Container"
+import Eyebrow from "@/components/Eyebrow"
 
 const items = [
   {
@@ -22,9 +23,9 @@ export default function Currently() {
   return (
     <section className="border-t border-border py-14">
       <Container>
-        <p className="mb-8 font-mono text-xs uppercase tracking-[0.06em] text-muted-foreground">
-          <span className="text-primary">01</span> · currently
-        </p>
+        <Eyebrow label="01" className="mb-8">
+          currently
+        </Eyebrow>
 
         <h2 className="mb-8 text-[28px] font-semibold tracking-[-0.02em]">
           What I'm currently up to
