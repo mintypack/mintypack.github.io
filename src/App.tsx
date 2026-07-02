@@ -1,7 +1,7 @@
 import Header from "@/components/Header"
 import Hero from "@/components/Hero"
 import Currently from "@/components/Currently"
-import Latest from "@/components/Latest"
+// import Latest from "@/components/Latest"
 
 function App() {
   return (
@@ -10,7 +10,7 @@ function App() {
       <main>
         <Hero />
         <Currently />
-        <Latest />
+        {/*<Latest />*/}
       </main>
     </>
   )
