@@ -10,7 +10,7 @@ const items = [
   {
     label: "Learning",
     title: "Fusion360",
-    meta: "Can't print what I can't model yet.",
+    meta: "Can't 3D print what I can't model yet.",
   },
   {
     label: "Reading",
