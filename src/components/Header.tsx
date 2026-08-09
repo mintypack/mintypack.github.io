@@ -1,8 +1,17 @@
 import { useEffect, useState } from "react"
+import { Link, NavLink } from "react-router"
 
 import Container from "@/components/Container"
 import ThemeToggle from "@/components/ThemeToggle"
 import { cn } from "@/lib/utils"
+
+// Active links get full text color plus a small underline
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  cn(
+    "relative text-[15px] text-muted-foreground transition-colors hover:text-foreground",
+    isActive &&
+      "text-foreground after:absolute after:inset-x-0 after:-bottom-1 after:h-0.5 after:rounded-[1px] after:bg-primary"
+  )
 
 export default function Header() {
   const [scrolled, setScrolled] = useState(false)
@@ -27,8 +36,8 @@ export default function Header() {
       )}
     >
       <Container className="flex items-center justify-between gap-6">
-        <a
-          href="/"
+        <Link
+          to="/"
           className="inline-flex items-center gap-2 text-base font-semibold tracking-tight"
         >
           <span
@@ -36,21 +45,15 @@ export default function Header() {
             aria-hidden="true"
           />
           Zoe Le
-        </a>
+        </Link>
 
         <nav className="flex items-center gap-7" aria-label="Primary">
-          <a
-            href="/projects"
-            className="text-[15px] text-muted-foreground transition-colors hover:text-foreground"
-          >
+          <NavLink to="/projects" className={navLinkClass}>
             projects
-          </a>
-          <a
-            href="/about"
-            className="text-[15px] text-muted-foreground transition-colors hover:text-foreground"
-          >
+          </NavLink>
+          <NavLink to="/about" className={navLinkClass}>
             about
-          </a>
+          </NavLink>
           <ThemeToggle />
         </nav>
       </Container>
