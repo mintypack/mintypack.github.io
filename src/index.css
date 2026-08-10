@@ -109,9 +109,9 @@
 :root {
     --background: oklch(0.9848 0.0054 95.0983);
     --foreground: oklch(0.1905 0.0099 97.8757);
-    --card: oklch(0.9848 0.0054 95.0983);
+    --card: oklch(0.9578 0.0095 93.5698);
     --card-foreground: oklch(0.1905 0.0099 97.8757);
-    --popover: oklch(0.9848 0.0054 95.0983);
+    --popover: oklch(0.9578 0.0095 93.5698);
     --popover-foreground: oklch(0.1905 0.0099 97.8757);
     --primary: oklch(0.6204 0.2012 31.0088);
     --primary-foreground: oklch(1.0000 0 0);
