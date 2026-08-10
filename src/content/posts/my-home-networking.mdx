@@ -1,9 +1,29 @@
 ---
 title: "My Home Networking"
-blurb: "lorem ipsum?"
+blurb: "My Home Networking setup for my first apartment"
 category: "networking"
-date: "2026-04-19"
+date: "2024-04-19"
 ---
 
-## Blog
-Funny networking spidey here
+import Diagram from "@/components/Diagram"
+
+
+When I moved out of my college dorm and into my first apartment, the first thing I thought about was how I was going to set up my network.
+
+I got lucky: the building has fiber, so I don't have to worry about data caps or bandwidth. The catch is that the only ethernet port is in the living room, and while I could run a cable to my bedroom, there's no way to do it cleanly.
+
+I move a lot of data between my NAS and my PC, and over Wi-Fi that eats most of the available bandwidth. What I wanted was my own subnet in my bedroom with those machines wired to each other, so that traffic never touches the shared network. I also wanted my own Wi-Fi for the apartment so my roommates could use it. Technically I didn't need to since the complex has APs any tenant can use, but as a CS student I gotta go overboard. My own router is faster anyway.
+
+That works out to three routers, because a router in bridge mode gives up its own routing and DHCP:
+
+- one in the living room, plugged into the apartment's ethernet port, serving the household Wi-Fi
+- one in my bedroom in bridge mode, joining that Wi-Fi and pulling the connection into my room
+- one behind it, running my own subnet with my PC and NAS wired in
+
+<Diagram src="/diagrams/my-home-networking" alt="Home Networking setup" caption="Routers setup"/>
+
+I grabbed an Asus and two Netgears on Facebook Marketplace and eBay for about $40 total. The Asus router is in the living room, and the two Netgears are in my bedroom.
+
+Bridge mode is doing most of the work here. A repeater has to receive a frame and retransmit it on the same radio, so everything crosses the air twice and throughput drops by roughly half. The bridge only receives; everything past it leaves over ethernet, so I keep close to the full speed of the link back to the living room.
+
+So I get wired devices in my bedroom without running cable across the apartment, and Wi-Fi that's still fast. The subnet is a bonus, anything I spin up at home stays off the shared network, so I don't have to think about whether a web server has a password on it :)
