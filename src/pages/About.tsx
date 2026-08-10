@@ -251,10 +251,10 @@ export default function About() {
           <div className="grid gap-16 md:grid-cols-[minmax(0,1fr)_320px] md:items-start">
             <div>
               <div className="mb-6 flex size-24 items-center justify-center rounded-full bg-[linear-gradient(135deg,var(--primary),color-mix(in_oklab,var(--primary)_60%,#7c3aed))] text-[32px] font-semibold tracking-[-0.02em] text-white shadow-md">
-                DL
+                ZL
               </div>
               <h1 className="mb-3 text-[clamp(40px,6vw,64px)] font-semibold leading-[1.05] tracking-[-0.03em]">
-                Duy Le
+                Zoe Le
               </h1>
               <p className="mb-7 font-mono text-[13px] uppercase tracking-[0.04em] text-muted-foreground">
                 Software Engineer · East Lansing, MI
