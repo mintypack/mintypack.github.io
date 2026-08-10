@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite'
 import react, { reactCompilerPreset } from '@vitejs/plugin-react'
 import babel from '@rolldown/plugin-babel'
+import mdx from '@mdx-js/rollup'
+import remarkFrontmatter from 'remark-frontmatter'
+import remarkMdxFrontmatter from 'remark-mdx-frontmatter'
 import path from 'path';
 import tailwindcss from '@tailwindcss/vite';
 
@@ -15,6 +18,18 @@ export default defineConfig({
     },
   },
   plugins: [
+    // Compile .mdx to plain JS before the React plugins run.
+    // remark-frontmatter parses the --- block, remark-mdx-frontmatter
+    // re-exports it as `meta`.
+    {
+      enforce: 'pre',
+      ...mdx({
+        remarkPlugins: [
+          remarkFrontmatter,
+          [remarkMdxFrontmatter, { name: 'meta' }],
+        ],
+      }),
+    },
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     tailwindcss(),
