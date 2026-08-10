@@ -260,7 +260,7 @@ export default function About() {
                 Software Engineer · East Lansing, MI
               </p>
               <p className="max-w-[560px] text-[19px] leading-[1.65]">
-                I graduated from Michigan State with a B.S. in Computer Science and Computational Mathematics, and
+                I graduated from Michigan State University with a B.S. in Computer Science and Computational Mathematics, and
                 now a full-time SWE. Outside of that I tinker with my homelab, lately that's meant getting into
                 networking, wiring up the rack and reaching it from anywhere over a VPN.
               </p>
