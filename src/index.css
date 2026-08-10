@@ -227,3 +227,15 @@
     @apply font-sans;
     }
 }
+
+@layer base {
+  code[data-theme*=" "],
+  code[data-theme*=" "] span {
+    color: var(--shiki-light);
+  }
+
+  .dark code[data-theme*=" "],
+  .dark code[data-theme*=" "] span {
+    color: var(--shiki-dark);
+  }
+}

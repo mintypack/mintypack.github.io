@@ -80,8 +80,8 @@ const MONTHS = [
   "dec",
 ]
 
-// "2026-05-02" -> "may 02"
+// "2026-05-02" -> "may 02, 2026"
 export function formatPostDate(date: string) {
-  const [, month, day] = date.split("-")
-  return `${MONTHS[Number(month) - 1]} ${day}`
+  const [year, month, day] = date.split("-")
+  return `${MONTHS[Number(month) - 1]} ${day}, ${year}`
 }

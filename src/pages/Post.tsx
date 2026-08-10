@@ -25,6 +25,7 @@ const mdxComponents: MDXComponents = {
   ),
   a: (props) => (
     <a
+      target="_blank"
       className="underline underline-offset-2 transition-colors hover:text-foreground"
       {...props}
     />
@@ -32,6 +33,24 @@ const mdxComponents: MDXComponents = {
   code: (props) => (
     <code
       className="rounded bg-muted px-1.5 py-0.5 font-mono text-[0.85em]"
+      {...props}
+    />
+  ),
+  figure: (props) => (
+    <figure
+      className="my-5 overflow-hidden rounded-lg border border-border"
+      {...props}
+    />
+  ),
+  figcaption: (props) => (
+    <figcaption
+      className="border-b border-border bg-accent px-4 py-2.5 font-mono text-xs text-muted-foreground"
+      {...props}
+    />
+  ),
+  pre: (props) => (
+    <pre
+      className="overflow-x-auto bg-muted px-5 py-4 font-mono text-[13px] leading-[1.7] text-foreground [&>code]:bg-transparent [&>code]:p-0 [&>code]:[font-size:inherit]"
       {...props}
     />
   ),
@@ -47,7 +66,7 @@ export default function Post() {
 
   return (
     <section className="pt-14 pb-16">
-      <Container className="max-w-192">
+      <Container className="max-w-224">
         <Link
           to="/projects"
           className="text-[13px] text-muted-foreground transition-colors hover:text-foreground"

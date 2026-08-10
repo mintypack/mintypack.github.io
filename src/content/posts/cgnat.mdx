@@ -1,9 +1,181 @@
 ---
 title: "My attempt in getting around CGNAT"
-blurb: "CGNAT stuff"
+blurb: "Getting around CGNAT"
 category: "networking"
-date: "2026-04-28"
+date: "2024-04-28"
 ---
 
-## Hehe
-lorem ipsum stuff
+import Diagram from "@/components/Diagram"
+
+<Diagram src="/diagrams/my-attempt-in-getting-around-CGNAT" alt="My attempt in getting around CGNAT" caption="Diagram of the setup"/>
+
+## Backstory
+
+When I moved into my apartment, I was happy to find it had fiber internet, so I didn't have to worry about data caps or bandwidth. The one inconvenience I discovered is that my network is behind CGNAT. For anyone unfamiliar: the TLDR is that instead of getting your own public IPv4 address, you sit behind another layer of NAT and share a single public IP with a bunch of other houses and apartments.
+
+Early on I stumbled upon ZeroTier, a decentralized VPN service that connects your devices into a virtual subnet, so even when you're away you can still reach the machines at home. ZeroTier handles the NAT traversal and establishes the connection between your devices for you. This worked pretty well despite my home network being behind CGNAT. However, I found that in one specific department at my school, ZeroTier couldn't establish a direct connection. Usually that happens when both devices are behind CGNAT, but in this case I suspect that department's network has strict firewall rules, or a hard NAT.
+
+For both ZeroTier and Tailscale, a *direct* connection means the two devices talk to each other straight across the internet. If they can't negotiate that, the traffic falls back to a *relay* connection, where it gets routed through one of the provider's hosted relay servers, usually whichever has the lowest latency. Since that's a shared resource, the speed is limited. I remember only getting less than 10 Mbps when traffic was relayed. That's fine for most things, but not for streaming from my Plex server.
+
+So my thought was: if the laptop I bring to school weren't behind a hard NAT, I'd get a direct connection. Which means if I could route my connection out through somewhere that has a public IP address, I should be able to establish one. ZeroTier lets you self-host a Moon server (their relay), so my first idea was to run one on a VPS and route traffic through it. But the setup looked complicated, so I was putting it off. Around that time I was already experimenting with WireGuard, so I figured I'd try that out first.
+
+## Setting up the VPS
+
+Step one was getting a VPS with a public IP to use as the VPN server. Searching around pointed me to Oracle Cloud and their free tier VM. A VPN server doesn't need much in the way of resources, so a 1 vCPU instance works fine.
+
+I didn't want to route *all* my traffic through the VPN server. That's overkill, and if I want a full tunnel I can use a commercial VPN with far more server locations. WireGuard supports split tunneling, so only the traffic that needs to reach my home network goes through the tunnel.
+
+To set up the WireGuard server I used the popular install script at [github.com/angristan/wireguard-install](https://github.com/angristan/wireguard-install). Here's the config it produced, plus some routing lines I added on top:
+
+```ini title="VPS wg0.conf (original)"
+[Interface]
+Address = 10.66.66.1/24,fd42:42:42::1/64
+ListenPort = 58249
+PrivateKey = private123
+PostUp = iptables -I INPUT -p udp --dport 58249 -j ACCEPT
+PostUp = iptables -I FORWARD -i ens3 -o wg0 -j ACCEPT
+PostUp = iptables -I FORWARD -i wg0 -j ACCEPT
+PostUp = iptables -t nat -A POSTROUTING -o ens3 -j MASQUERADE
+PostUp = ip6tables -I FORWARD -i wg0 -j ACCEPT
+PostUp = ip6tables -t nat -A POSTROUTING -o ens3 -j MASQUERADE
+PostDown = iptables -D INPUT -p udp --dport 58249 -j ACCEPT
+PostDown = iptables -D FORWARD -i ens3 -o wg0 -j ACCEPT
+PostDown = iptables -D FORWARD -i wg0 -j ACCEPT
+PostDown = iptables -t nat -D POSTROUTING -o ens3 -j MASQUERADE
+PostDown = ip6tables -D FORWARD -i wg0 -j ACCEPT
+PostDown = ip6tables -t nat -D POSTROUTING -o ens3 -j MASQUERADE
+
+# IPv4 forwarding & routing
+PreUp = sysctl -w net.ipv4.ip_forward=1
+PreUp = ip rule add iif wg0 table 123 priority 456
+PostDown = ip rule del iif wg0 table 123 priority 456
+
+# IPv6 forwarding & routing
+PreUp = sysctl -w net.ipv6.conf.all.forwarding=1
+PreUp = ip -6 rule add iif wg0 table 123 priority 456
+PostDown = ip -6 rule del iif wg0 table 123 priority 456
+
+# Client Macbook
+[Peer]
+PublicKey = public123
+PresharedKey = key123
+AllowedIPs = 10.66.66.2/32,fd42:42:42::2/128
+
+# Client Raspi
+[Peer]
+PublicKey = public123
+PresharedKey = key123
+AllowedIPs = 10.0.0.0/24
+```
+
+That config works, but going back through it later, most of it turned out to be doing nothing for my particular setup. More on that below.
+
+## Trimming it down
+
+The install script writes the same rules for everyone, and it assumes you want a full tunnel out to the internet. Mine is a split tunnel to a private subnet.
+
+What's actually left:
+
+```ini title="VPS wg0.conf (trimmed)"
+[Interface]
+Address = 10.66.66.1/24
+ListenPort = 58249
+PrivateKey = private123
+
+PostUp = iptables -I INPUT -p udp --dport 58249 -j ACCEPT
+PostUp = iptables -I FORWARD -i wg0 -j ACCEPT
+PostDown = iptables -D INPUT -p udp --dport 58249 -j ACCEPT
+PostDown = iptables -D FORWARD -i wg0 -j ACCEPT
+
+# Client Macbook
+[Peer]
+PublicKey = public123
+PresharedKey = key123
+AllowedIPs = 10.66.66.2/32
+
+# Client Raspi
+[Peer]
+PublicKey = public123
+PresharedKey = key123
+AllowedIPs = 10.66.66.3/32,10.0.0.0/24
+```
+
+Also IP forward needs to be enabled `net.ipv4.ip_forward=1` by editing `/etc/sysctl.conf` file
+
+
+## AllowedIPs
+
+`AllowedIPs` is an important setting in WireGuard, and it means two different things depending on which side you're reading:
+
+- **On the server**, it's an access control list *and* a routing table. Inbound packets from a peer are dropped unless their source address falls inside that peer's `AllowedIPs`, and outbound packets are sent to whichever peer claims that destination. WireGuard calls this cryptokey routing.
+- **On the client**, traffic with the subnet listed there will be routed through the tunnel.
+
+Here are the client configs:
+
+```ini title="Macbook"
+[Interface]
+PrivateKey = privatekey123
+Address = 10.66.66.2/32
+DNS = 1.1.1.1,1.0.0.1
+
+[Peer]
+PublicKey = publickey123
+PresharedKey = key123
+Endpoint = 1.2.3.4:58249
+AllowedIPs = 10.66.66.0/24,10.0.0.0/24
+```
+
+```ini title="Raspi"
+[Interface]
+PrivateKey = private123
+Address = 10.66.66.3/32
+DNS = 1.1.1.1,1.0.0.1
+
+PostUp = iptables -t nat -A POSTROUTING -s 10.66.66.0/24 -o eth0 -j MASQUERADE
+PostDown = iptables -t nat -D POSTROUTING -s 10.66.66.0/24 -o eth0 -j MASQUERADE
+
+[Peer]
+PublicKey = public123
+PresharedKey = key123
+Endpoint = 1.2.3.4:58249
+AllowedIPs = 10.66.66.0/24
+PersistentKeepalive = 25
+```
+
+The install script defaults every client to `AllowedIPs = 0.0.0.0/0,::/0`, which is a full tunnel. Both of mine need to be modified:
+
+- The **Macbook** needs `10.0.0.0/24` in there since I want requests to my home network to go through the tunnel.
+- The **Raspi** shouldn't be left at `0.0.0.0/0` either. That makes wg0 its default route, so everything goes through the tunnel, but not what I need, and it eats into the free tier's egress allowance. It only needs to reach the VPN subnet.
+
+There's a third thing that isn't visible from the client side at all. On the **server**, the Raspi peer has to list two things:
+
+```ini
+AllowedIPs = 10.66.66.3/32,10.0.0.0/24
+```
+
+`10.0.0.0/24` is what makes the VPS route to my home network.
+
+I also added `PersistentKeepalive = 25` on the Raspi. Since it's the peer sitting behind CGNAT, it has to keep the NAT mapping alive so the VPS can reach it without the Pi having spoken first.
+
+
+## Getting the replies back
+
+There's one more piece, on the Raspi side. Traffic coming out of the tunnel into my home network still carries the client's VPN address as its source, so my Plex box sees a connection from `10.66.66.2`. It replies to that address and hands the reply to its default gateway, which is my home router, and the router has no idea what `10.66.66.0/24` is. The reply gets dropped there. From the Macbook the connection just hangs, which looks nothing like a routing problem.
+
+Two ways to fix it:
+
+- **A static route on the home router**: `10.66.66.0/24` via the Raspi's LAN IP. This is the cleaner option, since home devices then see the real client address. But not every consumer router lets you add static routes.
+- **NAT on the Raspi**, so tunnel traffic appears to come from the Pi's own LAN address:
+  ```ini
+  PostUp = iptables -t nat -A POSTROUTING -s 10.66.66.0/24 -o eth0 -j MASQUERADE
+  PostDown = iptables -t nat -D POSTROUTING -s 10.66.66.0/24 -o eth0 -j MASQUERADE
+  ```
+
+I went with NAT, since it only needs changes on the Pi.
+
+
+## The result
+
+With this in place, whenever I'm on that department's WiFi and want a fast connection to my home network, I bring up the WireGuard tunnel and turn ZeroTier off. It might work with ZeroTier left on, but I don't remember testing it.
+
+
