@@ -157,6 +157,7 @@ function ContactRow({ icon: Icon, label, value, href }: (typeof contacts)[number
         {href ? (
           <a
             href={href}
+            target="_blank"
             className="text-sm text-foreground transition-colors hover:text-primary"
           >
             {value}
