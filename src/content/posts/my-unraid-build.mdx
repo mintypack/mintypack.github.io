@@ -1,10 +1,46 @@
 ---
 title: "My Unraid Build"
-blurb: "Build NAS"
+blurb: "My first NAS build: a budget Unraid server for Plex and self-hosting"
 category: "homelab"
-date: "2026-05-02"
+date: "2021-09-02"
 ---
 
-## NAS
+import Figure from '@/components/Figure'
 
-Build NAS here
+My senior year of high school was the year I finally got to build my first PC, one I could bring to college. I'd been obsessed with PC building all through high school, and that was the first time I actually got to do it myself.
+
+It was also around then that I discovered NAS, or Network Attached Storage. It's basically a PC that's mostly storage. I was binge watching SpaceInvader One on YouTube, who makes videos about Unraid, a Linux-based operating system built for NAS. So in my first year of college, I decided to build my own.
+
+I picked Unraid over TrueNAS because of how it handles drives. Unraid lets me mix whatever HDD sizes I want and add them one at a time. ZFS, which TrueNAS is built on, will let you mix sizes too, but it caps every drive in a group to the smallest one, so anything bigger is wasted space. When you're buying whatever's on sale, that adds up fast.
+
+I should mention I was also into ripping Blu-rays. That's a big part of why I wanted a NAS in the first place: somewhere to self-host a media server and stream the movies I'd bought. After reading through the MakeMKV forums I grabbed an LG BU40N, a drive that can read 4K Blu-rays. If I'm going to store a movie, I may as well store the best quality version of it.
+
+Since I wasn't sure how into this I'd be (spoiler: very), I started as cheaply as I could, which meant used parts instead of new. There were two exceptions. The PSU I bought new, because if it fails it can potentially take down every other component in the machine. The case I also bought new, since a used one isn't much cheaper once you factor in shipping, and I needed it shipped because I don't have a car.
+
+I went with the Cooler Master N400, mainly because it still has 5.25" bays. That let me mount the optical drive and gave me room for extra hard drives, which most cases don't allow for these days.
+
+Here is my part list:
+
+| Component   | Selection                      |
+| ----------- | ------------------------------ |
+| CPU         | AMD Ryzen 2600                 |
+| Motherboard | MSI B450 TOMAHAWK              |
+| Memory      | G.Skill Ripjaws 16GB DDR4-3200 |
+| Storage     | WD Blue 4TB                    |
+| GPU         | Gigabyte GTX 1660 Ti           |
+| PSU         | EVGA 650 G3 80+ Gold           |
+| Case        | Cooler Master N400             |
+
+I can't remember the exact prices lol, but the whole thing came out to somewhere around $500.
+
+The WD Blue is probably not the best drive for a NAS, but it was on sale when I bought it, and it was cheap enough that I didn't mind if the whole experiment didn't pan out.
+
+I gathered the parts and had it built within the first few weeks of school, with a Plex server running on it.
+
+I also had other Docker containers running: File Browser to manage files on the array from a browser, Syncthing to keep files in step across my devices, and PlexTraktSync to push my Plex watch history to Trakt.
+
+I wasn't exposing any of it to the school network, though. Everything sat behind my own router, and I used Tailscale to reach it from outside. On a network you don't control, port forwarding isn't an option anyway.
+
+<Figure src="/images/unraid-build-init.JPG" alt="Unraid build" caption="Build in progress" />
+
+This is the picture of when I was building it in my dorm room :)

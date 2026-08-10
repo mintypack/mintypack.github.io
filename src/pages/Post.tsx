@@ -3,11 +3,13 @@ import type { MDXComponents } from "mdx/types"
 
 import Container from "@/components/Container"
 import Diagram from "@/components/Diagram"
+import Figure from "@/components/Figure"
 import NotFound from "@/pages/NotFound"
 import { CATEGORIES, formatPostDate, posts } from "@/content/posts"
 
 const mdxComponents: MDXComponents = {
   Diagram,
+  Figure,
   h2: (props) => (
     <h2
       className="mt-10 text-xl font-semibold tracking-[-0.015em]"
@@ -29,6 +31,22 @@ const mdxComponents: MDXComponents = {
       className="underline underline-offset-2 transition-colors hover:text-foreground"
       {...props}
     />
+  ),
+
+  // Table stuff
+  table: (props) => (
+    <div className="my-5 overflow-x-auto">
+      <table className="w-full text-sm" {...props} />
+    </div>
+  ),
+  th: (props) => (
+    <th
+      className="border-b border-border-strong px-3 py-2.5 text-left font-mono text-[11px] font-normal uppercase tracking-[0.04em] text-muted-foreground"
+      {...props}
+    />
+  ),
+  td: (props) => (
+    <td className="border-b border-border px-3 py-2.5 align-top" {...props} />
   ),
   code: (props) => (
     <code

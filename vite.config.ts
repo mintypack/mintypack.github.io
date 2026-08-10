@@ -4,6 +4,7 @@ import babel from '@rolldown/plugin-babel'
 import mdx from '@mdx-js/rollup'
 import remarkFrontmatter from 'remark-frontmatter'
 import remarkMdxFrontmatter from 'remark-mdx-frontmatter'
+import remarkGfm from 'remark-gfm'
 import rehypePrettyCode from 'rehype-pretty-code'
 import path from 'path';
 import tailwindcss from '@tailwindcss/vite';
@@ -28,6 +29,7 @@ export default defineConfig({
         remarkPlugins: [
           remarkFrontmatter,
           [remarkMdxFrontmatter, { name: 'meta' }],
+          remarkGfm,
         ],
         rehypePlugins: [
           [rehypePrettyCode, {

@@ -44,6 +44,7 @@
     "globals": "^17.6.0",
     "rehype-pretty-code": "^0.14.5",
     "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
     "remark-mdx-frontmatter": "^5.2.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
