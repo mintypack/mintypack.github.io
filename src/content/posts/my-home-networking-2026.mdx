@@ -1,0 +1,96 @@
+---
+title: "My Home Networking 2026"
+blurb: "Moved to a new place, setting up a new home network."
+category: "networking"
+date: "2026-01-27"
+---
+
+import Figure from '@/components/Figure'
+
+I was thinking about upgrading my network setup when I moved to a new place. I still wanted my own subnet since I'm sharing the place with other people, but this time I also wanted my own Wi-Fi instead of using the household one. If you haven't read about my previous setup, go check out [[My Home Networking]].
+
+I wanted prosumer level gear with the kind of features power users care about, so I started looking at Ubiquiti. One of my friends runs UniFi and swears by the UI/UX, but it comes with a steep price tag. I was still considering it when I heard about TP-Link Omada, which is also feature rich but a lot cheaper.
+
+The plan was an AP, a router, and a switch so I could wire up multiple devices. I also wanted VLANs so I could separate IoT, my main network, and guests.
+
+## Picking the gear
+
+I looked at UniFi first and came up with this:
+
+| Type   | Name           | Price |
+| ------ | -------------- | ----- |
+| Router | Dream Router 7 | $301  |
+| Switch | Lite 8 PoE     | $117  |
+| AP     | U6 Pro         | $171  |
+|        |                |       |
+| Total  |                | $589  |
+
+I'm living in a house with a basement, and all the networking runs through there. My PC and NAS are down there too, with a wire run up to my room. That's why I figured the Dream Router made sense: it has Wi-Fi built in, so paired with the U6 Pro upstairs I'd get much better coverage. It would also be better for future proofing, since it has a 10 Gbps port and I could technically build toward a full 10 Gbps setup later.
+
+I could swap the router for a Cloud Gateway Ultra at $139, which brings the total down to $427, but that still costs more than the Omada setup below.
+
+| Type       | Name   | Price |
+| ---------- | ------ | ----- |
+| Router     | ER605  | $50   |
+| Switch     | SG2218 | $140  |
+| AP         | EAP650 | $80   |
+| Controller | OC220  | $90   |
+|            |        |       |
+| Total      |        | $360  |
+
+Since the totals were pretty close, I technically could have gone UniFi from the start. What pushed the number up was wanting the 10 Gbps Dream Router, which made UniFi look more expensive than it had to be. Looking back, I could have just gone UniFi. Spoiler alert: I ran into tons of issues with Omada, so maybe the price difference would have been worth it. Or maybe UniFi would have given me the same headaches and I just wouldn't know. I guess I won't find out any time soon :)
+
+I went with Omada, and the difference showed up immediately in how much I could find online whenever I hit a problem. I'd already noticed it while researching what to buy: the UniFi forums and subreddit have far more material than Omada does. So I wasn't confident going in, but money is money and cheaper won. Oh well.
+
+## The ACL saga
+
+Initially I didn't buy the SG2218. I got the ES224G, which TP-Link calls an Easy Managed (Agile) switch, and later found out it doesn't support ACLs.
+
+Omada has three kinds of ACL: Gateway, Switch, and AP. On controller firmware 5.x, the IP Group and IP-Port Group selectors were available in every direction _except_ LAN to LAN.
+
+I run an AdGuard Home instance on my main VLAN, and I wanted every device on every VLAN to use it as their DNS server so it could block ads and telemetry. With LAN to LAN unavailable at the gateway, a Switch ACL was the way to do it, and the Easy Managed switch can't do ACLs at all. So I returned it and got the SG2218.
+
+The new switch arrived the same week controller firmware 6.x dropped, which added IP-Port Group support to the Gateway ACL. So I could do the whole thing at the gateway after all, and the switch I'd swapped for turned out to be unnecessary for the exact reason I swapped it. But this switch has more features so I guess it's nice to have. This almost made me return everything and buy UniFi lol, and if that firmware had landed a few days later my setup probably wouldn't be Omada today.
+
+## VLANs
+
+With that out of the way I started setting up VLANs. I planned to separate IoT and surveillance cameras, but I don't have many of either, so they share one VLAN. The rest is a default VLAN for management, a main VLAN for my PC and NAS, and a guest VLAN with client isolation.
+
+| VLAN ID | Purpose              |
+| ------- | -------------------- |
+| 1       | Management           |
+| 10      | Main                 |
+| 20      | IoT and Surveillance |
+| 30      | Guest                |
+
+On the router, the port for the OC220 controller has its native VLAN set to VLAN 1 for management, and the same goes for the port running to the switch.
+
+On the switch, most ports have their native VLAN set to the main VLAN (10) and are configured as trunks. That isn't strictly necessary for endpoints, but it's a home network. If someone has physical access to my basement I'm screwed anyway, and this way I can plug in a new device without reconfiguring the port first. It's a five minute change if I ever decide to lock it down.
+
+The exception is one access port limited to VLAN 20, which feeds an unmanaged PoE+ switch (TP-Link LS108GP) that powers the surveillance cameras. The cameras are Reolink PoE.
+
+## ACL rules
+
+The rules are pretty simple. By default Omada allows VLAN to VLAN traffic, so the first thing was blocking that. Then the main VLAN gets access to all the others. Finally, one rule lets every VLAN reach the AdGuard Home instance, scoped to its specific IP on port 53 only, so nothing else running on that host is exposed. Each VLAN then hands out that address as its DNS server.
+
+## Wi-Fi
+
+Three SSIDs: one for IoT, one for my main devices, and one for guests.
+
+## Living with it
+
+Other than the ACL mess, the new web UI looks modern and works well. Importing my list of static IPs was painless, which mattered since most devices on my network have reserved addresses, and it just worked on the first try.
+
+One oddity I'm still unsure about. Omada has mDNS reflection, so things like Google Cast work across VLANs. But there's a cap on how many custom mDNS service IDs you can add, and I hit it. Some of my IoT devices advertise service IDs I can't register because of that limit. This is the first networking gear I've owned that does mDNS reflection at all, so I don't know whether that limit is normal or an Omada thing.
+
+After that, it just works. I rarely open the controller anymore.
+
+## Would I do it again
+
+Probably UniFi, if I'm honest. The gear is better documented and the community is bigger, and when something goes wrong that matters more than the spec sheet does. The ACL episode cost me a switch return and a week of second-guessing the whole purchase. But grass always looks greener on the other side.
+
+But my network works now, and I can't justify replacing hardware that does its job. So Omada it is, at least until something breaks.
+
+<Figure src="/images/home-network-2026-light.png" alt="Site Map" caption="Omada Site Map" />
+
+Here is the site map. Ignore the disconnected AP :) I took this while I was moving stuff around so I didn't need it plugged in, but it works I swear :)
