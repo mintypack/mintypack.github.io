@@ -1,0 +1,57 @@
+---
+title: "PC in another room"
+blurb: "PC heats up the room -> big problem, but what if the problem is not in the room at all?"
+category: "homelab"
+date: "2025-08-15"
+---
+
+import Figure from '@/components/Figure'
+
+Every PC produces heat, and depending on the size of the case, a fair amount of noise as well. I went deep down the Small Form Factor PC (SFFPC) rabbit hole, and my first build was an SFF. Because it's small, I ended up with both a heat and a noise problem. I tried building a vent to dump the hot air out of the window so my room could stay cool, but it didn't work that well.
+
+<Figure src="/images/sffpc-vent.jpg" alt="vent for pc" caption="Heat go bye bye, or is it?" />
+
+So what if the PC isn't in the room at all? Then I don't have to deal with the extra heat and noise. I used to be into RGB lighting to light up my PC, but once I got into SFF that interest went away, so it doesn't really matter to me if the PC is out of sight. What I want most out of my PC is performance, not looks.
+
+So now, onto the quest to make this possible. The longer the distance between my desk and my PC, the harder it gets to find the right cables and docks, because HDMI, DP, and USB all have practical length limits before the signal starts to degrade. Passive copper just doesn't hold up over a long run, so fiber optic becomes a must for HDMI and DP.
+
+I watch a lot of Linus Tech Tips on YouTube, and he ran into the same problem: the PCs were rack mounted in another room, and then in the basement of the new house, which made the distance even longer. In one video they showed off a Thunderbolt 3 dock at the end of a long Thunderbolt cable. The thing about Thunderbolt is that it can't do long distance over copper, which is why almost every cable off the shelf is short. Corning makes an optical TB3 cable, but that cable alone costs about $400 for a 25 meter / 82ft run, and that's before the cost of the dock. Optical Thunderbolt cables also can't carry power, so anything on the far end needs its own power supply.
+
+In another video I think they used fiber optic cable for HDMI and DP, but USB has the same length problem, so they used an Icron Raven USB 3.1 extender to push USB over a long run. That solves the distance problem, but the price tag is steep at around $1400. At that price you're paying for a whole PC setup.
+
+So I went on a quest to find a cheaper way to do the same thing. For HDMI and DP it's pretty easy, long fiber optic cables are everywhere. USB was the problem. I couldn't find an affordable fiber optic USB cable, so instead I looked for long extension cables with a signal booster built in, that way the signal doesn't drop over the run. And I managed to find all the right cables for my needs.
+
+For me 50ft / 15m seemed like a good length, so that's what I was aiming for. All of the cables I was able to find on Amazon.
+
+
+| Type      | Name                                                                                                | Comment                                                        |
+| --------- | --------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| HDMI      | [RUBMUD 8K Fiber HDMI 2.1 Cable](https://www.amazon.com/dp/B0DBV3H8KK?th=1)                         |                                                                |
+| DP        | [huaham Fiber Optic DisplayPort Cable 2.1](https://www.amazon.com/dp/B0D1FZY462)                    | Check the direction, it's not reversible                       |
+| USB 3     | [W WDX MAST DYNAPOINT LIMITED USB 3 extension cable](https://www.amazon.com/dp/B07MZRB6LN?th=1)     | Weird brand name I know :)                                     |
+| USB 2     | [LDKCOK USB 2 extension cable](https://www.amazon.com/dp/B0777FDCX7?th=1)                           |                                                                |
+| USB 3 hub | [TP-Link 7 USB 3.0 Data Ports and 2 Smart Charging USB Ports](https://www.amazon.com/dp/B00SCX6I8A) |                                                                |
+| Ethernet  | [Smolink Cat 8 Ethernet Cable, 50ft](https://www.amazon.com/dp/B0BQXMJFBG?th=1)                     | Any ethernet cable works, I grabbed this one at random for my AP |
+
+
+
+With these I was able to wire all of my peripherals back to my PC in the basement.
+
+One thing to watch out for is that fiber HDMI and DP cables are directional. One end is meant to be plugged into the source and the other into the display, and they can't be reversed. If you do what I did and don't check, the PC will show that a display is connected but you'll just get a black screen.
+
+Speed wise, the USB 3.0 cable holds up well. File transfers run at full speed, and I can even use Oculus Link over the Link cable without any issue, which is the most demanding thing I throw at it.
+
+As for powering the PC on, I enabled Wake-on-LAN and set up a smart button connected to Home Assistant to send the magic packet. So I just press the button on my desk to turn the PC on, no need to walk down to the basement every time.
+
+And this is a picture of my desk in my bedroom. As you can see, no PC to be found.
+
+<Figure src="/images/desk-setup.jpg" alt="My desk" caption="My desk setup" />
+
+This is where it is in the basement, along with my NAS
+
+<Figure src="/images/basement-pc.jpg" alt="PC and NAS in the basement" caption="PC and NAS in the basement" />
+
+
+Credit to the LTT videos that inspired this setup:
+- https://www.youtube.com/watch?v=wQMCvQ01e80
+- https://www.youtube.com/watch?v=Dy312cUHumk
