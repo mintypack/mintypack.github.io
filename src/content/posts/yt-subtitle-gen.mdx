@@ -1,0 +1,59 @@
+---
+title: "yt-subtitle-gen"
+blurb: "Transcribe and translate YouTube subtitles on my own GPU"
+category: "code"
+date: "2026-06-03"
+cover: "/images/yt-subtitle-gen.png"
+repo: "mintypack/yt-subtitle-gen"
+---
+
+import Figure from '@/components/Figure'
+
+I sometimes want to watch a YouTube video in its original language, with subtitles in the language I can read. For a lot of videos that option just isn't there, so I wanted an automated way to transcribe the audio and translate it into a language I know.
+
+<Figure src="/images/yt-subtitle-gen.gif" alt="Pasting a YouTube link, watching the job run, and editing cues side by side in the browser" caption="Paste a link, wait for the pipeline, then fix whatever came out wrong" />
+
+## What it does
+
+Paste a YouTube link and it comes back with the video's metadata, its audio tracks, and every caption track the uploader publishes. From there:
+
+- Transcribe the audio with WhisperX, with word level alignment, optional speaker diarization, and optional vocal isolation for music heavy sources.
+- Or skip transcription entirely and reuse a caption track the uploader already published.
+- Translate into any supported language with an LLM, or reuse a published caption in the target language.
+- Edit any cue in either language, side by side, then download SRT, VTT, or plain text.
+- Or just to get the transcription without any translation.
+
+Every run is kept in a searchable history and can be re-run in place.
+
+
+## Running it
+
+Compose pulls prebuilt images from GHCR, so there is nothing to build:
+
+```bash
+git clone https://github.com/mintypack/yt-subtitle-gen.git
+cd yt-subtitle-gen
+docker compose up -d
+```
+
+Open `http://localhost:8080`, go to Settings, and enter your provider details. The first request is slow while the model weights download. `latest` is the default tag, so pin a version if you would rather not move:
+
+```bash
+SUBGEN_VERSION=0.1.0 docker compose up -d
+```
+
+Almost everything else is configured in the Settings screen and stored in the database rather than in the environment, so there is no long env var list to work through.
+
+<Callout label="Requires">
+An NVIDIA GPU with a current driver. The transcription stack is CUDA only, so CPU only machines and Apple Silicon will not work.
+
+You also need Docker with the NVIDIA Container Toolkit, roughly 5.7 GB of disk for model weights, and an LLM provider (an OpenRouter key or an Ollama instance you already run) unless you only ever reuse published captions.
+</Callout>
+
+## The annoying parts
+
+Two things ate more time than the actual features.
+
+The first was cuDNN and cuBLAS. The ASR backend needs shared libraries that ship inside pip packages and are not on the loader search path, and `LD_LIBRARY_PATH` is only read when a process starts, so setting it after the fact does nothing and re-execing would kill the server. They get opened explicitly at import time instead, in a specific order, and only the two that are needed. The cuBLAS wheel also ships a library that hijacks CPU BLAS calls and quietly breaks numpy and torch if you load everything in it.
+
+The second was Blackwell. Torch comes from the CUDA 12.8 wheel index, pinned in `pyproject.toml`, because RTX 50 series cards need `sm_120` kernels that the default PyPI wheels do not carry. Without the pin it installs cleanly and then fails at the first kernel launch.

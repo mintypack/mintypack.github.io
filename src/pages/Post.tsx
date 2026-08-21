@@ -1,6 +1,8 @@
 import { Link, useParams } from "react-router"
 import type { MDXComponents } from "mdx/types"
+import { FaGithub } from "react-icons/fa"
 
+import Callout from "@/components/Callout"
 import Container from "@/components/Container"
 import Diagram from "@/components/Diagram"
 import Figure from "@/components/Figure"
@@ -8,6 +10,7 @@ import NotFound from "@/pages/NotFound"
 import { CATEGORIES, formatPostDate, posts } from "@/content/posts"
 
 const mdxComponents: MDXComponents = {
+  Callout,
   Diagram,
   Figure,
   h2: (props) => (
@@ -108,6 +111,18 @@ export default function Post() {
         <p className="mt-3 text-lg leading-relaxed text-muted-foreground">
           {post.blurb}
         </p>
+
+        {post.repo && (
+          <a
+            href={`https://github.com/${post.repo}`}
+            target="_blank"
+            rel="noopener"
+            className="mt-6 inline-flex items-center gap-2 rounded-md border border-border-strong px-4 py-2.5 text-sm font-medium transition-colors hover:border-foreground hover:bg-card"
+          >
+            <FaGithub className="size-4" aria-hidden="true" />
+            {post.repo}
+          </a>
+        )}
 
         <Body components={mdxComponents} />
       </Container>

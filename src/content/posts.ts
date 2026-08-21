@@ -6,7 +6,8 @@ export const CATEGORIES = {
   homelab: "#1e3a8a",
   drone: "#9d174d",
   "3d print": "#5b21b6",
-  networking: '#FFA168'
+  networking: '#FFA168',
+  code: "#0f766e",
 } as const
 
 export type Category = keyof typeof CATEGORIES
@@ -19,6 +20,8 @@ type RawFrontmatter = {
   date: string
   // Absolute path into public/, e.g. "/covers/pic.jpg". Falls back to the category color when absent.
   cover?: string
+  // "owner/name" on GitHub. Renders a link to the repo when present.
+  repo?: string
 }
 
 type PostModule = { default: ComponentType<MDXProps> }
@@ -30,6 +33,7 @@ export type PostMeta = {
   category: Category
   date: string
   cover?: string
+  repo?: string
   Body: ComponentType<MDXProps>
 }
 

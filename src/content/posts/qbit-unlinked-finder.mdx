@@ -1,0 +1,71 @@
+---
+title: "qbit-unlinked-finder"
+blurb: "A web UI that shows which downloads are already hardlinked into my media library, and creates the links for the ones that aren't"
+category: "code"
+date: "2026-07-02"
+cover: "/images/qbit-unlinked-finder.png"
+repo: "mintypack/qbit-unlinked-finder"
+---
+
+import Figure from '@/components/Figure'
+
+Hardlinking a download into my media library is a two command job, and the commands are the easy part. The hard part is knowing what still needs linking, and for file path and folder name that is long is also annyoying to type them out.
+
+A downloads folder that has been running for a couple of years turns into three piles mixed together: files that are already linked into the library, files that were never linked, and files that are not in qBittorrent so I don't know about since they are not showing up in qbit. From a shell prompt none of them look any different. You can check `nlink` on a single file, sure, but not on a few thousand of them, and certainly not while trying to remember which ones you dealt with last month.
+
+So I built something that answers the question on one screen.
+
+<Figure src="/images/qbit-unlinked-finder.png" alt="The qbit-unlinked-finder scan view, listing downloads with their link and managed status" caption="Every download, with its link status and whether qBittorrent still tracks it" />
+
+## What it does
+
+It scans the downloads folder and cross references it against qBittorrent's torrent list, then sorts everything into buckets you can filter by: linked, not hardlinked, cross-seeded, partial, linked elsewhere, and unmanaged. Anything sitting in "unlinked" or "unmanaged" is something to deal with.
+
+From the same screen it creates the links. Pick a single file or a whole torrent folder, choose a destination root, and it does the work that `cp -lr` used to do by hand. Expanding a torrent shows the per file breakdown, including the `nlink` count and where each file already points.
+
+<Figure src="/images/qbit-unlinked-finder-2.png" alt="The expanded view of one torrent, showing per file link counts and their targets" caption="Expanding a torrent shows where each file is already linked" />
+
+It runs as one container: a FastAPI backend serving the built React UI. There is no database. The index lives in memory, built by a full scan at startup and refreshed when qBittorrent reports a torrent change, on a daily timer, or whenever you hit rescan.
+
+## Running it
+
+Copy `config.example.toml` to `config.toml` and point it at your qBittorrent instance and your destination roots. The part that trips people up is the path mapping: qBittorrent reports paths as *its* container sees them, so you have to rewrite that prefix into the way this app sees the same files.
+
+```toml
+[qbittorrent]
+url = "http://qbittorrent:8080"
+username = "admin"
+
+# qBittorrent reports its own container paths, so rewrite the prefix
+[[qbittorrent.path_mappings]]
+from = "/config/qBittorrent/downloads"
+to = "/data/downloads"
+
+[scan]
+downloads_root = "/data/downloads"
+rescan_interval_seconds = 86400
+
+[[destination_roots]]
+path = "/data/Media/Movies"
+label = "Movies"
+categories = ["movies"]
+
+[server]
+# every name or IP you will type into the browser to reach this app
+allowed_hosts = ["localhost", "127.0.0.1", "nas.local"]
+```
+
+Then bring it up and open `http://<host>:8000`:
+
+```bash
+QBIT_PASSWORD=.. docker compose up -d
+```
+
+Any TOML key can be overridden with an environment variable instead. Prefix it with `QUF_` and use `__` for nesting, so `QUF_SCAN__RESCAN_INTERVAL_SECONDS=1800` works.
+
+<Callout label="Before you start">
+Downloads and every destination root have to live on one host filesystem, reachable through a single bind mount, because hardlinks cannot cross filesystems. On Unraid that means the same share.
+
+The app has no auth of its own, so keep it on a trusted LAN or put it behind an authenticating reverse proxy.
+</Callout>
+
