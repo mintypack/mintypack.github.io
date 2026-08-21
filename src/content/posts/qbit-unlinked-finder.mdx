@@ -9,9 +9,9 @@ repo: "mintypack/qbit-unlinked-finder"
 
 import Figure from '@/components/Figure'
 
-Hardlinking a download into my media library is a two command job, and the commands are the easy part. The hard part is knowing what still needs linking, and for file path and folder name that is long is also annyoying to type them out.
+Hardlinking a download into my media library is a two command job, and the commands are the easy part. The hard part is knowing what still needs linking, and typing out long file paths and folder names by hand gets old fast.
 
-A downloads folder that has been running for a couple of years turns into three piles mixed together: files that are already linked into the library, files that were never linked, and files that are not in qBittorrent so I don't know about since they are not showing up in qbit. From a shell prompt none of them look any different. You can check `nlink` on a single file, sure, but not on a few thousand of them, and certainly not while trying to remember which ones you dealt with last month.
+A downloads folder that has been running for a couple of years turns into three piles mixed together: files that are already linked into the library, files that were never linked, and files that qBittorrent no longer tracks at all, so they never show up in its list. From a shell prompt none of them look any different. You can check `nlink` on a single file, sure, but not on a few thousand of them, and certainly not while trying to remember which ones you dealt with last month. And it is never a one time job. Every new batch of downloads means walking the whole list again to see what got missed.
 
 So I built something that answers the question on one screen.
 
