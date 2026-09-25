@@ -1,0 +1,53 @@
+---
+title: "doujinshi-librarian"
+blurb: "Downloads galleries into my library, keeps their metadata current, and notices when the source deletes them"
+category: "code"
+date: "2026-09-16"
+cover: "/images/doujinshi-librarian.webp"
+coverDark: "/images/doujinshi-librarian-dark.webp"
+repo: "mintypack/doujinshi-librarian"
+---
+
+import Figure from '@/components/Figure'
+
+Once [doujinshi-reader](/projects/doujinshi-reader) could read the library, the other half of the problem was filling it. My old routine was a pile of one-off downloads dumped into a flat folder, with no record of what came from where. And galleries on the source site do not stay put: they get deleted, restored, or quietly swapped for different content under the same id. A flat folder cannot tell you any of that.
+
+So the reader got a sibling. The librarian acquires and maintains, the reader presents, and the library on disk is the contract between them.
+
+<Figure src="/images/doujinshi-librarian.webp" darkSrc="/images/doujinshi-librarian-dark.webp" alt="The doujinshi-librarian library grid, with filters for site, local state, site state, and source" caption="Everything the app knows about, downloaded or not" />
+
+## What it does
+
+- Queue downloads by URL or id, many at a time, pasted as one list.
+- Sync a source like my favorites, either new entries only or a full pass, on demand or on a schedule.
+- Track site state. Deleted, restored, and reassigned galleries are flagged instead of silently redownloaded.
+- Refresh metadata and keep a change log, so I can see what got edited after the fact.
+- Scan the disk and report drift against the database in both directions before changing anything.
+
+All of it runs through a persistent job queue with per-endpoint rate limits, retries, pausing, and crash recovery, so a killed container resumes where it stopped.
+
+<Figure src="/images/doujinshi-librarian-dashboard.webp" darkSrc="/images/doujinshi-librarian-dashboard-dark.webp" alt="The dashboard, showing running jobs, job counts, library counts, and scheduled runs" caption="The dashboard: running work, queue counts, and schedules" />
+
+Site support is a plugin interface. Each plugin describes its settings as JSON Schema and the settings form is generated from that, so adding a site needs no frontend work.
+
+## Running it
+
+Create both folders first and make sure they are owned by the user the container runs as, then bring it up:
+
+```bash
+mkdir -p /srv/library /srv/librarian-data
+LIBRARY_PATH=/srv/library DATA_PATH=/srv/librarian-data docker compose up -d
+```
+
+Open `http://<host>:3001` and add your site credentials on the Settings page. Nothing downloads until a source is configured.
+
+If you already have a flat folder of downloads, two scripts in the repo move them into the library layout without redownloading. The first asks the site whether each gallery still exists, and the second validates each archive against the site's page count and moves it into place, writing a manifest so the whole import can be undone. Each file needs the gallery id in its name, like `[177013]`, since that is how the scripts know which gallery it is.
+
+<Callout label="Before you start">
+Docker creates a missing bind mount source as root, and the container then cannot write to it. That is why the folders have to exist first. If you also run the reader, give both containers the same `PUID` and `PGID`. Their defaults differ (99:100 for the reader, 1000:1000 here), so set them explicitly.
+
+Keep `DATA_PATH` on a local disk. It holds a SQLite database in WAL mode, which is not safe over SMB or NFS. The library itself can be a network share.
+
+There is no auth, so keep it on your LAN or behind a reverse proxy that handles login.
+</Callout>
+

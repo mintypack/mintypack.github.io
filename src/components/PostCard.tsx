@@ -1,6 +1,7 @@
 import { Link } from "react-router"
 
 import { CATEGORIES, formatPostDate, type PostMeta } from "@/content/posts"
+import { cn } from "@/lib/utils"
 
 export default function PostCard({ post }: { post: PostMeta }) {
   const color = CATEGORIES[post.category]
@@ -12,12 +13,25 @@ export default function PostCard({ post }: { post: PostMeta }) {
     >
       {/* Decorative: the card's own heading already names the post */}
       {post.cover ? (
-        <img
-          src={post.cover}
-          alt=""
-          loading="lazy"
-          className="aspect-[16/10] w-full object-cover"
-        />
+        <>
+          <img
+            src={post.cover}
+            alt=""
+            loading="lazy"
+            className={cn(
+              "aspect-[16/10] w-full object-cover",
+              post.coverDark && "dark:hidden"
+            )}
+          />
+          {post.coverDark && (
+            <img
+              src={post.coverDark}
+              alt=""
+              loading="lazy"
+              className="hidden aspect-[16/10] w-full object-cover dark:block"
+            />
+          )}
+        </>
       ) : (
         <div className="aspect-[16/10]" style={{ background: color }} />
       )}

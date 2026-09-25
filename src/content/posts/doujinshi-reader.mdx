@@ -1,0 +1,73 @@
+---
+title: "doujinshi-reader"
+blurb: "A self-hosted web reader for the manga and comic archives sitting on my NAS"
+category: "code"
+date: "2026-09-15"
+cover: "/images/doujinshi-reader-grid.webp"
+coverDark: "/images/doujinshi-reader-grid-dark.webp"
+repo: "mintypack/doujinshi-reader"
+---
+
+import Figure from '@/components/Figure'
+
+I have a few thousand comic archives on my NAS, collected from several sites over the years. Reading them meant copying a `.cbz` to whatever device I was on and opening it in a desktop app, which works fine until you want to find something by artist or tag, or read on a phone from the couch. And searching them through File Explorer on Windows is not fun.
+
+So I built a reader that runs next to the library and serves it to any browser on my home network. There is a read-only demo at [mintypack.github.io/doujinshi-reader](https://mintypack.github.io/doujinshi-reader/) if you want to click around.
+
+<Figure src="/images/doujinshi-reader-grid.webp" darkSrc="/images/doujinshi-reader-grid-dark.webp" alt="The doujinshi-reader library grid, with search, site, page count, and sort filters on the left" caption="The library grid, filtered and sorted from the sidebar" />
+
+## What it does
+
+It indexes a folder of `.cbz` and `.zip` archives and gives you a searchable grid of covers:
+
+- Title search that works for Japanese titles, plus filters for tags, site, and page count.
+- Include or exclude any tag, with suggestions that show how many galleries each one has.
+- Gallery pages whose tags link back into the grid, so finding more from the same artist is one click.
+- A reader that shows one page at a time and turns pages by drag, tap, arrow keys, or the page slider.
+- A scan screen that lists the galleries with problems: damaged pages, missing metadata, or archives that will not open.
+
+Pages are read straight out of the archives. Nothing gets extracted, and the reader never writes to the library.
+
+<Figure src="/images/doujinshi-reader-reader.webp" alt="The reader view, showing one manga page fitted to the screen with a page slider at the bottom" caption="One page at a time, fitted to the screen or to its width" />
+
+## Running it
+
+It is one container, with a template for Unraid. With Compose, point `LIBRARY_PATH` at your library share and bring it up:
+
+```bash
+LIBRARY_PATH=/mnt/user/media/doujinshi docker compose up -d
+```
+
+Then open `http://<host>:3000`. The first scan starts right away, and later rescans only read the galleries that changed.
+
+The library layout is one folder per site, named by its domain, with the archives anywhere below it. A `metadata.json` beside an archive supplies its title and tags. Archives without one still show up, titled by file name.
+
+```
+library/
+  example.com/
+    1/
+      sample.cbz
+      metadata.json
+  other-website.com/
+    Some Title.cbz
+```
+
+Every site formats its metadata differently, so each site folder gets its own parser, chosen by the folder's domain name. Supporting a new site means adding a parser, not changing the reader.
+
+<Callout label="Good to know">
+The library is mounted read-only, and the appdata folder only holds the search index and thumbnails. Deleting it is safe; the next scan rebuilds both, which takes a while on a large library.
+
+There is no auth, so keep it on your LAN.
+</Callout>
+
+## The annoying parts
+
+Before writing anything I checked the library and it was kinda messy.
+
+Archive order is not page order. One archive listed its entries as `00, 02, 01, 36, 04`, so pages are sorted by name with a natural sort, where `2.jpg` comes before `10.jpg`.
+
+Since I used a script to download those manga, it did not always handle errors well. A few archives ended up with metadata but no images at all, and one had a zero-byte page. The tricky part was that plenty of small blank pages are *not* damage: they are real blank inside covers and chapter dividers, so the scan cannot just flag every tiny page.
+
+Dealing with filenames is another thing too. Brackets, `#`, `&`, and a `…` left over from the downloader truncating names at 100 characters all have to survive the trip into a URL and back.
+
+If you need something to fill the library, I also have [doujinshi-librarian](/projects/doujinshi-librarian) which downloads the files and organizes them to work with this reader.

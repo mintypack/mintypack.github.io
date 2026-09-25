@@ -20,6 +20,8 @@ type RawFrontmatter = {
   date: string
   // Absolute path into public/, e.g. "/covers/pic.jpg". Falls back to the category color when absent.
   cover?: string
+  // Optional dark mode variant of `cover`, same path format
+  coverDark?: string
   // "owner/name" on GitHub. Renders a link to the repo when present.
   repo?: string
 }
@@ -33,6 +35,7 @@ export type PostMeta = {
   category: Category
   date: string
   cover?: string
+  coverDark?: string
   repo?: string
   Body: ComponentType<MDXProps>
 }
